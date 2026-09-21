@@ -1,0 +1,8 @@
+ok - without config/fleet-crew-limit every spawn behaves as before and no ledger exists
+ok - concurrent spawns from the primary and two secondmate homes never exceed a ceiling of two
+ok - a third worker is refused, supervisors hold no slot, and teardown frees a slot for the next worker
+ok - a failed launch returns its slot and a retry takes exactly one
+ok - a killed spawn keeps its slot until retried or explicitly released
+ok - a relaunch keeps its task's claim, and adopts one for a legacy task only when a slot is free
+ok - a replacement supervisor inherits the ledger, reports orphans, and frees them only on explicit release
+ok - a malformed ceiling refuses the spawn
