@@ -386,6 +386,7 @@ Secondmate homes never read a ceiling of their own; every local home follows its
 A home whose parent is on another machine is its own root, so the ceiling binds one machine's homes rather than a remote tree.
 A spawn that would exceed the ceiling refuses before any endpoint, local copy, or task record exists, and the task stays queued until a worker finishes and its cleanup returns the slot.
 A malformed or unreadable file refuses every ordinary spawn in the tree rather than guessing a ceiling.
+A relaunch keeps its task's existing claim, but a live worker that predates the ceiling and holds no claim must be adopted first or its relaunch is refused at the ceiling.
 The ledger is durable, so replacing the primary session in the same home keeps the count.
 `bin/fm-fleet-admission.sh` is the operator surface: `status` reconciles the ledger against task records, `adopt` brings a home's tasks from before the ceiling under the count, and `release` frees a slot only after an operator confirms its claim is orphaned.
 The fleet worker admission section of [`bin/fm-wake-lib.sh`](../bin/fm-wake-lib.sh) owns the claim lifecycle, including how failed, killed, and relaunched spawns keep or return their slots.
