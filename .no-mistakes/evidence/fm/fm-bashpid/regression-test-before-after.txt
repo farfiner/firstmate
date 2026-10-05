@@ -1,0 +1,8 @@
+$ FM_TEST_ONLY=test_fm_exec_timed_tracks_the_owner_without_bashpid /bin/bash tests/fm-timeout-lib.test.sh   # target 80c7da32
+ok - fm_exec_timed tracks its owner without BASHPID
+rc=0
+
+$ same test with base f470a01c bin/fm-timeout-lib.sh
+not ok - a direct fm_exec_timed without BASHPID failed (rc=127): /Users/risingklass/.no-mistakes/worktrees/b0cd321f01be/01M450AN6ZXM2GQAAZTB5AZ4HV/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+rc=1
+Updated 1 path from the index

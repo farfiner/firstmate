@@ -1,0 +1,30 @@
+┌──[risingklass@risingklass]──[/var/folders/nl/h43d_20j6019_wpxjrcn82cm0000gn/T/fm-lab.MDFr50/projects/labproj]
+└─▶ treehouse get                                                                                                                                                                                        ${vcs_info_msg_0_}
+A new version of treehouse is available: v2.3.0 → v3.1.2
+Run "treehouse update" to update
+🌳 Setting up worktree...
+🌳 Entered worktree at ~/.treehouse/labproj-a560d1/1/labproj. Type 'exit' to return.
+  Wake up, Neo...
+  The Matrix has you.
+┌──[risingklass@risingklass]──[~/.treehouse/labproj-a560d1/1/labproj]
+└─▶ cd -- '/Users/risingklass/.treehouse/labproj-a560d1/1/labproj'                                                                                                                                       ${vcs_info_msg_0_}
+┌──[risingklass@risingklass]──[~/.treehouse/labproj-a560d1/1/labproj]
+└─▶ export GOTMPDIR=/tmp/fm-bashpid-scout-x1/gotmp                                                                                                                                                       ${vcs_info_msg_0_}
+export COMPACT_ADVISER_DISABLE=1
+export FM_TASK_ID=bashpid-scout-x1
+┌──[risingklass@risingklass]──[~/.treehouse/labproj-a560d1/1/labproj]
+└─▶ export COMPACT_ADVISER_DISABLE=1                                                                                                                                                                     ${vcs_info_msg_0_}
+export FM_TASK_ID=bashpid-scout-x1
+┌──[risingklass@risingklass]──[~/.treehouse/labproj-a560d1/1/labproj]
+└─▶ export FM_TASK_ID=bashpid-scout-x1                                                                                                                                                                   ${vcs_info_msg_0_}
+┌──[risingklass@risingklass]──[~/.treehouse/labproj-a560d1/1/labproj]
+└─▶ . '/tmp/fm-bashpid-scout-x1+634518c6411e3da5c8138a6b39367a89aafee57b91f25a739a3732ab7e28a4aa/launch.s1791169580.91955.29383.sh'                                                                      ${vcs_info_msg_0_}
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Allow external CLAUDE.md file imports?
+  This project's CLAUDE.md or .claude/rules imports files outside the current working directory. Never allow this for third-party repositories.
+  External imports:
+    /Users/risingklass/AGENTS.md
+  Important: Only use Claude Code with files you trust. Accessing untrusted files may pose security risks https://code.claude.com/docs/en/security
+  ❯ No, disable external imports
+    Yes, allow external imports
+  Enter to confirm · Esc to cancel

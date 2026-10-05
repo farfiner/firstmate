@@ -1,0 +1,22 @@
+== Same lab, same /bin/bash 3.2.57, bin/fm-timeout-lib.sh temporarily reverted to base f470a01c
+== fm-spawn.sh exit: 1
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /var/folders/nl/h43d_20j6019_wpxjrcn82cm0000gn/T//fm-lab.MDFr50
+error: task bashpid-base-x2's backlog item could not be moved to In flight (/Users/risingklass/.no-mistakes/worktrees/b0cd321f01be/01M450AN6ZXM2GQAAZTB5AZ4HV/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable); its record was removed so no worker is left that the backlog does not own - close out endpoint primary:fm-bashpid-base-x2 and local copy /Users/risingklass/.treehouse/labproj-a560d1/1/labproj by hand, then re-run the spawn
+warning: leaving task bashpid-base-x2's slot claim on /Users/risingklass/.treehouse/labproj-a560d1/1/labproj in place; the Treehouse project lock is no longer held, so the next spawn's claim replaces it
+== data/backlog.md
+# Backlog
+
+## In flight
+## Queued
+- [ ] bashpid-base-x2 - lab base-commit repro (since 2026-10-04)
+## Done
+- [x] bashpid-scout-x1 - lab scout for bash 3.2 launch data/bashpid-scout-x1/report.md (reported 2026-10-04)
+== state/
+bashpid-base-x2.git-hooks
+bashpid-base-x2.inbox
+home-summary.json
+operational-inbox
+terminal-outcomes
+== lab tmux windows (stray worker left behind)
+primary:0: bash* (1 panes) [220x50] 
+primary:1: fm-bashpid-base-x2 (1 panes) [220x50] 

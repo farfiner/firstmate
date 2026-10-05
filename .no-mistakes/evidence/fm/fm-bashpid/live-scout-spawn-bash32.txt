@@ -1,0 +1,35 @@
+== /bin/bash version in the lab shell: 3.2.57(1)-release; bash on PATH: /bin/bash 
+== fm-spawn.sh output (exit 0)
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /var/folders/nl/h43d_20j6019_wpxjrcn82cm0000gn/T//fm-lab.MDFr50
+spawned bashpid-scout-x1 harness=claude kind=scout window=primary:fm-bashpid-scout-x1 worktree=/Users/risingklass/.treehouse/labproj-a560d1/1/labproj
+== data/backlog.md after spawn
+# Backlog
+
+## In flight
+- [ ] bashpid-scout-x1 - lab scout for bash 3.2 launch (since 2026-10-04)
+## Queued
+## Done
+== state/ task record
+bashpid-scout-x1.busy-gen
+bashpid-scout-x1.busy-state
+bashpid-scout-x1.git-hooks
+bashpid-scout-x1.inbox
+bashpid-scout-x1.meta
+home-summary.json
+operational-inbox
+--- bashpid-scout-x1.meta
+window=primary:fm-bashpid-scout-x1
+endpoint_task_id=bashpid-scout-x1
+worktree=/Users/risingklass/.treehouse/labproj-a560d1/1/labproj
+project=/var/folders/nl/h43d_20j6019_wpxjrcn82cm0000gn/T/fm-lab.MDFr50/projects/labproj
+harness=claude
+kind=scout
+tasktmp=/tmp/fm-bashpid-scout-x1
+model=default
+effort=default
+busy_gen=g1791169580.92672.5667
+spawn_gen=s1791169580.91955.29383
+== lab tmux windows
+primary:0: bash* (1 panes) [220x50] 
+primary:1: fm-bashpid-scout-x1 (1 panes) [220x50] 
+== grep BASHPID in spawn output: 0
