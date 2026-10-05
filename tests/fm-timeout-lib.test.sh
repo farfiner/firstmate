@@ -327,7 +327,7 @@ test_fm_exec_timed_tracks_the_owner_without_bashpid() {
   ' _ "$ROOT/bin/fm-timeout-lib.sh" "$PERL_ONLY" "$dir/done" >"$dir/direct.out" 2>"$dir/direct.err" || rc=$?
   elapsed=$((SECONDS - started))
   [ "$rc" -eq 0 ] || fail "a direct fm_exec_timed without BASHPID failed (rc=$rc): $(cat "$dir/direct.err")"
-  [ "$(cat "$dir/done" 2>/dev/null)" = done ] || fail "a direct call without BASHPID did not finish the command"
+  [ "$(cat "$dir/done" 2>/dev/null)" = "done" ] || fail "a direct call without BASHPID did not finish the command"
   [ "$elapsed" -ge 3 ] || fail "a direct call without BASHPID ended before the command could finish (${elapsed}s)"
   [ "$elapsed" -lt 20 ] || fail "a direct call without BASHPID ran toward its bound (${elapsed}s)"
   ! grep -q BASHPID "$dir/direct.err" || fail "a direct call without BASHPID still mentioned BASHPID: $(cat "$dir/direct.err")"
