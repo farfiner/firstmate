@@ -300,6 +300,62 @@ test_gnu_timeout_kills_a_term_ignoring_command_after_the_grace() {
   pass "fm_exec_timed's GNU timeout fallback kills a TERM-ignoring command once the grace has passed"
 }
 
+# Stock macOS Bash 3.2 has no BASHPID. A direct call must still finish
+# (the replaced shell is not the owner; its parent is), and a subshell whose
+# script dies during startup must still be watched as that script, not as
+# whatever reparented it. Both fail on the old unbound $BASHPID read.
+test_fm_exec_timed_tracks_the_owner_without_bashpid() {
+  local runner version dir rc started elapsed watchdog
+  runner=/bin/bash
+  version=$("$runner" -c 'printf %s "$BASH_VERSION"')
+  case "$version" in
+    3.2*) ;;
+    *)
+      pass "fm_exec_timed tracks its owner without BASHPID (skipped: /bin/bash is $version, not 3.2)"
+      return 0
+      ;;
+  esac
+  dir="$TMP_ROOT/no-bashpid"
+  mkdir -p "$dir"
+  rc=0
+  started=$SECONDS
+  "$runner" -c '
+    set -u
+    [ -z "${BASHPID+x}" ] || { echo "BASHPID is set" >&2; exit 97; }
+    . "$1"
+    PATH=$2:/bin:/usr/bin fm_exec_timed 30 1 bash -c "sleep 3; echo done > \"\$1\"" _ "$3"
+  ' _ "$ROOT/bin/fm-timeout-lib.sh" "$PERL_ONLY" "$dir/done" >"$dir/direct.out" 2>"$dir/direct.err" || rc=$?
+  elapsed=$((SECONDS - started))
+  [ "$rc" -eq 0 ] || fail "a direct fm_exec_timed without BASHPID failed (rc=$rc): $(cat "$dir/direct.err")"
+  [ "$(cat "$dir/done" 2>/dev/null)" = done ] || fail "a direct call without BASHPID did not finish the command"
+  [ "$elapsed" -ge 3 ] || fail "a direct call without BASHPID ended before the command could finish (${elapsed}s)"
+  [ "$elapsed" -lt 20 ] || fail "a direct call without BASHPID ran toward its bound (${elapsed}s)"
+  ! grep -q BASHPID "$dir/direct.err" || fail "a direct call without BASHPID still mentioned BASHPID: $(cat "$dir/direct.err")"
+
+  "$runner" -c '
+    set -u
+    [ -z "${BASHPID+x}" ] || exit 97
+    . "$1"
+    (
+      while kill -0 "$$" 2>/dev/null; do sleep 0.05; done
+      PATH=$3:/bin:/usr/bin fm_exec_timed 60 1 bash -c "exec sleep 300"
+    ) >/dev/null 2>&1 &
+    echo $! > "$2/watchdog"
+    exit 0
+  ' _ "$ROOT/bin/fm-timeout-lib.sh" "$dir" "$PERL_ONLY"
+  wait_for_file "$dir/watchdog"
+  watchdog=$(cat "$dir/watchdog")
+  started=$SECONDS
+  while kill -0 "$watchdog" 2>/dev/null; do
+    if [ "$((SECONDS - started))" -ge 15 ]; then
+      kill -KILL "$watchdog" 2>/dev/null || true
+      fail "without BASHPID a watchdog whose owner died during startup ran on toward its bound"
+    fi
+    sleep 0.02
+  done
+  pass "fm_exec_timed tracks its owner without BASHPID"
+}
+
 test_timed_out_names_exactly_the_bound_statuses() {
   local status verdict
   for status in 124 137 0 1 125 127 143 ''; do
@@ -327,6 +383,13 @@ test_run_timed_passes_a_natural_exit_through_a_fired_bound() {
   pass 'fm_run_timed passes a natural exit through when the bound fired after completion'
 }
 
+# CI's stock macOS Bash lane sets FM_TEST_ONLY to run just the bash-3.2
+# owner-tracking regression. The rest of this file is not a 3.2 snapshot suite.
+if [ -n "${FM_TEST_ONLY:-}" ]; then
+  "$FM_TEST_ONLY"
+  exit 0
+fi
+
 test_passes_the_command_status_and_output_through
 test_run_timed_reports_the_bound_when_the_wrapper_records_a_signal_death
 test_run_timed_passes_a_natural_exit_through_a_fired_bound
@@ -337,6 +400,7 @@ test_a_descendant_holding_the_output_cannot_outlast_the_bound
 test_a_signal_to_the_bounding_process_reaches_the_command
 test_a_named_owner_that_is_gone_ends_the_command
 test_an_owner_that_dies_during_startup_ends_the_command
+test_fm_exec_timed_tracks_the_owner_without_bashpid
 test_perl_is_preferred_over_timeout
 test_refuses_rather_than_running_unbounded
 test_rejects_malformed_bounds_before_running_anything

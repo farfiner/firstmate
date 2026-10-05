@@ -493,6 +493,17 @@ jobs:
             exit 1
           }
 
+          # fm_exec_timed reads the calling shell's pid. Stock Bash 3.2 has no
+          # BASHPID, and an unguarded read aborts every spawn after launch.
+          timeout_output=$(FM_TEST_ONLY=test_fm_exec_timed_tracks_the_owner_without_bashpid \
+            /bin/bash tests/fm-timeout-lib.test.sh)
+          printf '%s\n' "$timeout_output"
+          timeout_count=$(printf '%s\n' "$timeout_output" | grep -c '^ok - ')
+          [ "$timeout_count" -eq 1 ] || {
+            echo "::error::expected 1 timeout-lib bash 3.2 owner regression, got $timeout_count"
+            exit 1
+          }
+
           backend_output=$(FM_TEST_ONLY=test_backend_source_requires_adapter_file \
             FM_TEST_BASH=/bin/bash \
             /bin/bash tests/fm-backend.test.sh)
