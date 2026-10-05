@@ -301,11 +301,13 @@ test_gnu_timeout_kills_a_term_ignoring_command_after_the_grace() {
 }
 
 # Stock macOS Bash 3.2 has no BASHPID. A direct call must still finish
-# (the replaced shell is not the owner; its parent is), and a subshell whose
-# script dies during startup must still be watched as that script, not as
-# whatever reparented it. Both fail on the old unbound $BASHPID read.
+# (the replaced shell is not the owner; its parent is) and must end its command
+# when that parent dies, and a subshell whose script dies during startup must
+# still be watched as that script, not as whatever reparented it. Each case
+# checks the watchdog's own outcome, so the old unbound $BASHPID read (or a
+# refusal to identify the calling shell) fails instead of passing as an exit.
 test_fm_exec_timed_tracks_the_owner_without_bashpid() {
-  local runner version dir rc started elapsed watchdog
+  local runner version dir rc started elapsed caller watchdog command
   runner=/bin/bash
   version=$("$runner" -c 'printf %s "$BASH_VERSION"')
   case "$version" in
@@ -332,27 +334,67 @@ test_fm_exec_timed_tracks_the_owner_without_bashpid() {
   [ "$elapsed" -lt 20 ] || fail "a direct call without BASHPID ran toward its bound (${elapsed}s)"
   ! grep -q BASHPID "$dir/direct.err" || fail "a direct call without BASHPID still mentioned BASHPID: $(cat "$dir/direct.err")"
 
+  # A direct call whose caller dies while the command runs: the watchdog must
+  # start the command, then end it once that caller is gone.
+  cat > "$dir/direct-call.sh" <<'EOF'
+set -u
+[ -z "${BASHPID+x}" ] || { echo "BASHPID is set" >&2; exit 97; }
+. "$1"
+PATH=$2:/bin:/usr/bin fm_exec_timed 60 1 bash -c 'echo $$ > "$1"; exec sleep 300' _ "$3"
+EOF
+  "$runner" -c '
+    "$1" "$2" "$3" "$4" "$5" 2>"$6" &
+    echo $! > "$7"
+    wait
+  ' _ "$runner" "$dir/direct-call.sh" "$ROOT/bin/fm-timeout-lib.sh" "$PERL_ONLY" \
+    "$dir/direct-command" "$dir/direct-caller.err" "$dir/direct-watchdog" &
+  caller=$!
+  wait_for_file "$dir/direct-watchdog"
+  watchdog=$(cat "$dir/direct-watchdog")
+  wait_for_file "$dir/direct-command"
+  command=$(cat "$dir/direct-command")
+  kill -KILL "$caller" 2>/dev/null || true
+  wait "$caller" 2>/dev/null || true
+  started=$SECONDS
+  while kill -0 "$watchdog" 2>/dev/null || kill -0 "$command" 2>/dev/null; do
+    if [ "$((SECONDS - started))" -ge 15 ]; then
+      kill -KILL "$watchdog" "$command" 2>/dev/null || true
+      fail "without BASHPID a direct call whose caller died left its command running toward the bound"
+    fi
+    sleep 0.02
+  done
+  [ ! -s "$dir/direct-caller.err" ] || fail "a direct call whose caller died reported an error: $(cat "$dir/direct-caller.err")"
+
+  # The watchdog runs in a nested subshell so its exit status is recorded:
+  # an owner-death escalation ends the command by TERM or KILL (143 or 137),
+  # while a startup failure exits before the command ever starts.
   "$runner" -c '
     set -u
     [ -z "${BASHPID+x}" ] || exit 97
     . "$1"
     (
       while kill -0 "$$" 2>/dev/null; do sleep 0.05; done
-      PATH=$3:/bin:/usr/bin fm_exec_timed 60 1 bash -c "exec sleep 300"
+      rc=0
+      (
+        PATH=$3:/bin:/usr/bin fm_exec_timed 60 1 bash -c "echo \$\$ > \"\$1\"; exec sleep 300" _ "$2/startup-command"
+      ) 2>"$2/startup.err" || rc=$?
+      echo "$rc" > "$2/startup.rc"
     ) >/dev/null 2>&1 &
-    echo $! > "$2/watchdog"
     exit 0
   ' _ "$ROOT/bin/fm-timeout-lib.sh" "$dir" "$PERL_ONLY"
-  wait_for_file "$dir/watchdog"
-  watchdog=$(cat "$dir/watchdog")
   started=$SECONDS
-  while kill -0 "$watchdog" 2>/dev/null; do
+  while [ ! -s "$dir/startup.rc" ]; do
     if [ "$((SECONDS - started))" -ge 15 ]; then
-      kill -KILL "$watchdog" 2>/dev/null || true
+      [ ! -s "$dir/startup-command" ] || kill -KILL "$(cat "$dir/startup-command")" 2>/dev/null || true
       fail "without BASHPID a watchdog whose owner died during startup ran on toward its bound"
     fi
     sleep 0.02
   done
+  rc=$(cat "$dir/startup.rc")
+  case "$rc" in 143|137) ;; *) fail "without BASHPID a watchdog whose owner died during startup exited $rc, not by ending its command: $(cat "$dir/startup.err")" ;; esac
+  [ -s "$dir/startup-command" ] || fail "without BASHPID a watchdog whose owner died during startup never started its command"
+  ! kill -0 "$(cat "$dir/startup-command")" 2>/dev/null || fail "without BASHPID the command outlived its owner"
+  [ ! -s "$dir/startup.err" ] || fail "without BASHPID a watchdog whose owner died during startup reported an error: $(cat "$dir/startup.err")"
   pass "fm_exec_timed tracks its owner without BASHPID"
 }
 
